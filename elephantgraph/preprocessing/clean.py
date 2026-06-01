@@ -8,7 +8,7 @@ def remove_gps_outliers(df, max_speed_kmh=70):
     return df.reset_index(drop=True)
 
 
-def flag_large_gaps(df, gap_threshold_sec=300):
+def flag_large_gaps(df, gap_threshold_sec=1800):
     df = df.sort_values(['elephant_id', 'timestamp'])
     df['time_diff_sec'] = df.groupby('elephant_id')['timestamp'].diff().dt.total_seconds()
     df['has_gap_before'] = (

@@ -18,20 +18,13 @@ Place your CSV at `elephantgraph/data/raw/elephant_gps.csv` (you can symlink or 
 
 ```bash
 # Clean: handles outliers, GPS gaps, missing kinematics, categorical encoding
-python -m elephantgraph.preprocessing.clean \
-    --input elephantgraph/data/raw/elephant_gps.csv \
-    --output elephantgraph/data/processed/clean.csv
+python -m elephantgraph.preprocessing.clean  --input elephantgraph/data/raw/sample_data.csv  --output elephantgraph/data/processed/clean.csv
 
 # Resample to hourly for the coarse-level H3 graph
-python -m elephantgraph.preprocessing.resample \
-    --input elephantgraph/data/processed/clean.csv \
-    --output elephantgraph/data/processed/hourly/hourly.csv
+python -m elephantgraph.preprocessing.resample --input elephantgraph/data/processed/clean.csv --output elephantgraph/data/processed/hourly/hourly.csv
 
 # Create sliding windows (200-point, 50% overlap) and split by elephant
-python -m elephantgraph.preprocessing.windowing \
-    --input elephantgraph/data/processed/clean.csv \
-    --output elephantgraph/data/processed/windows/ \
-    --val-elephant AG005
+python -m elephantgraph.preprocessing.windowing --input elephantgraph/data/processed/clean.csv --output elephantgraph/data/processed/windows/  --val-elephant AG005
 
 # Build H3 graph with hierarchical splitting + train node2vec embeddings
 python -m elephantgraph.preprocessing.h3_builder \
@@ -52,13 +45,13 @@ bash elephantgraph/scripts/run_preprocessing.sh
 
 **Expected CSV columns** (see `elephantgraph/preprocessing/schema.py` for the full schema):
 
-| Required | Optional |
-|---|---|
-| `elephant_id`, `timestamp`, `longitude`, `latitude` | `behavior` (STOP/MOVE), `behavior_code` |
-| `speed_kmh`, `acceleration`, `turning_angle` | `season` (dry/wet), `season_code` |
-| `bearing`, `dir_persistence`, `step_dist_m` | `time_of_day` (night/morning/afternoon/evening) |
-| `NDVI`, `EVI`, `LST_celsius` | `LULC_class`, `human_settle`, `movement_type` |
-| `elevation_m`, `slope_deg`, `water_occ_1km` | `NSD`, `dist_from_origin_m` |
+| Required                                            | Optional                                        |
+| --------------------------------------------------- | ----------------------------------------------- |
+| `elephant_id`, `timestamp`, `longitude`, `latitude` | `behavior` (STOP/MOVE), `behavior_code`         |
+| `speed_kmh`, `acceleration`, `turning_angle`        | `season` (dry/wet), `season_code`               |
+| `bearing`, `dir_persistence`, `step_dist_m`         | `time_of_day` (night/morning/afternoon/evening) |
+| `NDVI`, `EVI`, `LST_celsius`                        | `LULC_class`, `human_settle`, `movement_type`   |
+| `elevation_m`, `slope_deg`, `water_occ_1km`         | `NSD`, `dist_from_origin_m`                     |
 
 Missing optional columns are filled with zeros. String categoricals (e.g. `behavior`) are auto-encoded during cleaning.
 
@@ -92,15 +85,15 @@ python -m elephantgraph.generate \
 
 Key generation arguments:
 
-| Argument | Description | Options |
-|---|---|---|
-| `--behavior` | Movement state | `MOVE`, `STOP` |
-| `--season` | Season | `dry`, `wet` |
-| `--time-of-day` | Time period | `night`, `morning`, `afternoon`, `evening` |
-| `--lulc` | Land cover class | 0–19 |
-| `--human-settle` | Near settlement | flag |
-| `--seq-len` | Points per trajectory | default 200 |
-| `--n` | Number to generate | default 1000 |
+| Argument         | Description           | Options                                    |
+| ---------------- | --------------------- | ------------------------------------------ |
+| `--behavior`     | Movement state        | `MOVE`, `STOP`                             |
+| `--season`       | Season                | `dry`, `wet`                               |
+| `--time-of-day`  | Time period           | `night`, `morning`, `afternoon`, `evening` |
+| `--lulc`         | Land cover class      | 0–19                                       |
+| `--human-settle` | Near settlement       | flag                                       |
+| `--seq-len`      | Points per trajectory | default 200                                |
+| `--n`            | Number to generate    | default 1000                               |
 
 ### 4. Evaluate
 
