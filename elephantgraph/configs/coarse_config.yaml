@@ -1,0 +1,39 @@
+model:
+  d_model: 128
+  nhead: 4
+  num_layers_fine: 3
+  num_layers_coarse: 2
+  dropout: 0.1
+  max_seq_len: 200
+  num_h3_nodes: 500
+
+diffusion:
+  T: 200
+  S: 40
+  beta_start: 0.0001
+  beta_end: 0.02
+
+data:
+  window_size: 200
+  stride: 100
+  gap_threshold_sec: 300
+  val_elephant: AG005
+  test_elephant: null
+
+training:
+  epochs: 150
+  batch_size: 512
+  lr: 2.0e-4
+  weight_decay: 1.0e-4
+  grad_clip: 1.0
+  checkpoint_dir: checkpoints/coarse/
+  log_every: 100
+
+h3:
+  initial_zoom: 4
+  split_threshold: 1.0
+  node2vec_dim: 64
+  eco_dim: 16
+  walk_length: 40
+  num_walks: 200
+  q: 4

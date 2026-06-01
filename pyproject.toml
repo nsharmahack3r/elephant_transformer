@@ -1,0 +1,37 @@
+[project]
+name = "elephantgraph"
+version = "0.1.0"
+description = "Hierarchical Behavior-Conditioned Trajectory Generation for Elephant GPS Data"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.1.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+    "scikit-learn>=1.3.0",
+    "h3>=3.7.6",
+    "geopandas>=0.14.0",
+    "rasterio>=1.3.0",
+    "shapely>=2.0.0",
+    "geopy>=2.4.0",
+    "networkx>=3.1",
+    "node2vec>=0.4.6",
+    "fastdtw>=0.3.4",
+    "scipy>=1.11.0",
+    "tqdm>=4.66.0",
+    "pyyaml>=6.0",
+    "tensorboard>=2.14.0",
+    "matplotlib>=3.7.0",
+    "folium>=0.14.0",
+]
+
+[project.scripts]
+elephantgraph-train = "elephantgraph.train:main"
+elephantgraph-generate = "elephantgraph.generate:main"
+elephantgraph-evaluate = "elephantgraph.evaluate:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["elephantgraph"]
