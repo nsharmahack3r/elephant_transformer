@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 
 
@@ -47,7 +48,26 @@ def hourly_resample(df, output_path=None):
     hourly['month'] = pd.to_datetime(hourly['timestamp']).dt.month
 
     if output_path:
+        os.makedirs(os.path.dirname(output_path) or ".", exist_ok=True)
         hourly.to_csv(output_path, index=False)
         print(f"Hourly resampled: {len(hourly)} rows -> {output_path}")
 
     return hourly
+
+
+def main():
+    import argparse
+    import os
+    parser = argparse.ArgumentParser(description="Hourly resample cleaned GPS data")
+    parser.add_argument("--input", type=str, required=True,
+                        help="Path to cleaned CSV file")
+    parser.add_argument("--output", type=str, required=True,
+                        help="Path to write hourly-resampled CSV")
+    args = parser.parse_args()
+    df = pd.read_csv(args.input, parse_dates=['timestamp'])
+    hourly_resample(df, output_path=args.output)
+
+
+if __name__ == "__main__":
+    import os
+    main()

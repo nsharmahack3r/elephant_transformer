@@ -72,3 +72,41 @@ def split_by_elephant(windows, val_elephant='AG005', test_elephant=None):
 
 def save_windows(windows, path):
     np.save(path, np.array(windows, dtype=object), allow_pickle=True)
+
+
+def main():
+    import argparse
+    import os
+    parser = argparse.ArgumentParser(description="Create sliding windows from cleaned GPS data")
+    parser.add_argument("--input", type=str, required=True,
+                        help="Path to cleaned CSV file")
+    parser.add_argument("--output", type=str, required=True,
+                        help="Directory to write train/val/test .npy files")
+    parser.add_argument("--window-size", type=int, default=WINDOW_SIZE,
+                        help=f"Window size in timesteps (default: {WINDOW_SIZE})")
+    parser.add_argument("--stride", type=int, default=STRIDE,
+                        help=f"Stride between windows (default: {STRIDE})")
+    parser.add_argument("--val-elephant", type=str, default="AG005",
+                        help="Elephant ID held out for validation (default: AG005)")
+    parser.add_argument("--test-elephant", type=str, default=None,
+                        help="Elephant ID held out for test (optional)")
+    args = parser.parse_args()
+
+    df = pd.read_csv(args.input, parse_dates=['timestamp'])
+    windows = create_windows(df, window_size=args.window_size, stride=args.stride)
+    print(f"Created {len(windows)} total windows")
+
+    train, val, test = split_by_elephant(windows,
+                                         val_elephant=args.val_elephant,
+                                         test_elephant=args.test_elephant)
+    print(f"Split: {len(train)} train, {len(val)} val, {len(test)} test windows")
+
+    os.makedirs(args.output, exist_ok=True)
+    save_windows(train, os.path.join(args.output, "train_windows.npy"))
+    save_windows(val,   os.path.join(args.output, "val_windows.npy"))
+    save_windows(test,  os.path.join(args.output, "test_windows.npy"))
+    print(f"Windows saved to {args.output}/")
+
+
+if __name__ == "__main__":
+    main()

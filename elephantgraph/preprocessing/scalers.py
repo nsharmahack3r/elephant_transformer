@@ -60,3 +60,29 @@ def load_scalers(input_dir):
     with open(os.path.join(input_dir, 'env_scaler.pkl'), 'rb') as f:
         env_scaler = pickle.load(f)
     return gps_scaler, kin_scaler, env_scaler
+
+
+def main():
+    import argparse
+    import os
+    import pandas as pd
+    from elephantgraph.preprocessing.windowing import create_windows
+
+    parser = argparse.ArgumentParser(description="Fit and save scalers from training windows")
+    parser.add_argument("--clean-data", type=str, required=True,
+                        help="Path to cleaned CSV file from elephantgraph.preprocessing.clean")
+    parser.add_argument("--output", type=str, required=True,
+                        help="Directory to save scaler .pkl files")
+    args = parser.parse_args()
+
+    df = pd.read_csv(args.clean_data, parse_dates=['timestamp'])
+    windows = create_windows(df)
+    print(f"Loaded {len(windows)} windows for scaler fitting")
+
+    gps_scaler, kin_scaler, env_scaler = fit_scalers(windows)
+    save_scalers(gps_scaler, kin_scaler, env_scaler, args.output)
+    print(f"Scalers saved to {args.output}/")
+
+
+if __name__ == "__main__":
+    main()

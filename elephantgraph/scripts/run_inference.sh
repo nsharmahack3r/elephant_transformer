@@ -3,4 +3,4 @@ set -euo pipefail
 
 echo "=== Running Inference ==="
 
-python generate.py "${@}"
+python -m elephantgraph.generate "${@}"

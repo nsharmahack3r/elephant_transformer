@@ -124,3 +124,70 @@ def build_ecological_embeddings(G, node2vec_model):
         embeddings[node] = torch.cat([structural, eco_emb]).detach().numpy()
 
     return embeddings
+
+
+def main():
+    import argparse
+    import os
+    import pickle
+    import pandas as pd
+
+    parser = argparse.ArgumentParser(description="Build H3 graph from hourly resampled data")
+    parser.add_argument("--input", type=str, required=True,
+                        help="Directory containing hourly CSV files")
+    parser.add_argument("--output", type=str, required=True,
+                        help="Directory to write H3 graph artifacts")
+    parser.add_argument("--split-threshold", type=float, default=SPLIT_THRESHOLD,
+                        help=f"Diameter threshold for H3 region splitting (default: {SPLIT_THRESHOLD})")
+    args = parser.parse_args()
+
+    hourly_files = [f for f in os.listdir(args.input) if f.endswith('.csv')]
+    if not hourly_files:
+        raise FileNotFoundError(f"No CSV files found in {args.input}")
+
+    dfs = []
+    for f in hourly_files:
+        df = pd.read_csv(os.path.join(args.input, f), parse_dates=['timestamp'])
+        dfs.append(df)
+    hourly_df = pd.concat(dfs, ignore_index=True)
+    print(f"Loaded {len(hourly_df)} hourly rows from {len(hourly_files)} files")
+
+    G, _ = build_h3_graph(hourly_df, split_threshold=args.split_threshold)
+    print(f"Built graph: {G.number_of_nodes()} nodes, {G.number_of_edges()} edges")
+
+    os.makedirs(args.output, exist_ok=True)
+
+    with open(os.path.join(args.output, 'graph.pkl'), 'wb') as f:
+        pickle.dump(G, f)
+
+    node2vec_model = train_node2vec(G)
+    embeddings = build_ecological_embeddings(G, node2vec_model)
+
+    np.save(os.path.join(args.output, 'node_embeddings.npy'), embeddings)
+
+    node_features = {}
+    for node in G.nodes():
+        node_features[node] = {k: v for k, v in G.nodes[node].items()
+                               if isinstance(v, (int, float, str))}
+    with open(os.path.join(args.output, 'node_features.json'), 'w') as f:
+        json.dump(node_features, f, default=float)
+
+    latent_dict = {}
+    for node in G.nodes():
+        ndvi_dry = G.nodes[node].get('ndvi_dry', 0.0)
+        ndvi_wet = G.nodes[node].get('ndvi_wet', 0.0)
+        water_dry = G.nodes[node].get('water_dry', 0.0)
+        water_wet = G.nodes[node].get('water_wet', 0.0)
+        latent_dict[node] = {
+            'dry':  {'ndvi': ndvi_dry,  'water': water_dry},
+            'wet':  {'ndvi': ndvi_wet,  'water': water_wet},
+        }
+    with open(os.path.join(args.output, 'latent_dict.pkl'), 'wb') as f:
+        pickle.dump(latent_dict, f)
+
+    print(f"H3 graph artifacts saved to {args.output}/")
+
+
+if __name__ == "__main__":
+    import numpy as np
+    main()

@@ -1,7 +1,9 @@
 import argparse
-import yaml
 import os
 import sys
+
+import numpy as np
+import yaml
 
 from elephantgraph.models.fine_generator import ElephantFineDiffusionTransformer
 from elephantgraph.models.diffusion import DDIMDiffusion
@@ -64,5 +66,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import numpy as np
     main()

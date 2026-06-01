@@ -60,3 +60,19 @@ def run_cleaning_pipeline(input_path, output_path):
     df = encode_categoricals(df)
     df.to_csv(output_path, index=False)
     print(f"Cleaned data: {len(df)} rows -> {output_path}")
+    return df
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Clean raw elephant GPS data")
+    parser.add_argument("--input", type=str, required=True,
+                        help="Path to raw CSV file")
+    parser.add_argument("--output", type=str, required=True,
+                        help="Path to write cleaned CSV")
+    args = parser.parse_args()
+    run_cleaning_pipeline(args.input, args.output)
+
+
+if __name__ == "__main__":
+    main()
