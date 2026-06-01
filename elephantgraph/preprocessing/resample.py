@@ -29,7 +29,7 @@ def hourly_resample(df, output_path=None):
     }
 
     categorical_cols = [
-        'elephant_id', 'behavior_code', 'season_code',
+        'behavior_code', 'season_code',
         'time_of_day_encoded', 'LULC_class', 'movement_type_code'
     ]
     for col in categorical_cols:

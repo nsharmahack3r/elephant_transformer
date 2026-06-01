@@ -19,7 +19,7 @@ def build_h3_graph(hourly_df, split_threshold=SPLIT_THRESHOLD):
 
     hourly_df = hourly_df.copy()
     hourly_df['h3_region'] = hourly_df.apply(
-        lambda r: h3.geo_to_h3(r['latitude'], r['longitude'], zoom),
+        lambda r: h3.latlng_to_cell(r['latitude'], r['longitude'], zoom),
         axis=1
     )
 
@@ -45,15 +45,15 @@ def build_h3_graph(hourly_df, split_threshold=SPLIT_THRESHOLD):
             finer_zoom = zoom + 2
             sub = hourly_df[hourly_df['h3_region'] == region]
             for _, row in sub.iterrows():
-                finer = h3.geo_to_h3(row['latitude'], row['longitude'], finer_zoom)
+                finer = h3.latlng_to_cell(row['latitude'], row['longitude'], finer_zoom)
                 final_regions[finer] = finer_zoom
         else:
             final_regions[region] = zoom
 
     def get_final_h3(lat, lon):
-        coarse = h3.geo_to_h3(lat, lon, zoom)
+        coarse = h3.latlng_to_cell(lat, lon, zoom)
         z = final_regions.get(coarse, zoom)
-        return h3.geo_to_h3(lat, lon, z)
+        return h3.latlng_to_cell(lat, lon, z)
 
     hourly_df['h3_final'] = hourly_df.apply(
         lambda r: get_final_h3(r['latitude'], r['longitude']),
