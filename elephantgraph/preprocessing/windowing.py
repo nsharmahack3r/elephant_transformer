@@ -77,10 +77,15 @@ def save_windows(windows, path):
 def main():
     import argparse
     import os
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.dirname(script_dir)
+
     parser = argparse.ArgumentParser(description="Create sliding windows from cleaned GPS data")
-    parser.add_argument("--input", type=str, required=True,
+    parser.add_argument("--input", type=str,
+                        default=os.path.join(project_dir, "data", "processed", "clean.csv"),
                         help="Path to cleaned CSV file")
-    parser.add_argument("--output", type=str, required=True,
+    parser.add_argument("--output", type=str,
+                        default=os.path.join(project_dir, "data", "processed", "windows"),
                         help="Directory to write train/val/test .npy files")
     parser.add_argument("--window-size", type=int, default=WINDOW_SIZE,
                         help=f"Window size in timesteps (default: {WINDOW_SIZE})")

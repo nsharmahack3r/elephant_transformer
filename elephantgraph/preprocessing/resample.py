@@ -57,11 +57,15 @@ def hourly_resample(df, output_path=None):
 
 def main():
     import argparse
-    import os
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.dirname(script_dir)
+
     parser = argparse.ArgumentParser(description="Hourly resample cleaned GPS data")
-    parser.add_argument("--input", type=str, required=True,
+    parser.add_argument("--input", type=str,
+                        default=os.path.join(project_dir, "data", "processed", "clean.csv"),
                         help="Path to cleaned CSV file")
-    parser.add_argument("--output", type=str, required=True,
+    parser.add_argument("--output", type=str,
+                        default=os.path.join(project_dir, "data", "processed", "hourly", "hourly.csv"),
                         help="Path to write hourly-resampled CSV")
     args = parser.parse_args()
     df = pd.read_csv(args.input, parse_dates=['timestamp'])
@@ -69,5 +73,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import os
     main()

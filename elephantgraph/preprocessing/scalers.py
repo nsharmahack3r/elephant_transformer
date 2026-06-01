@@ -68,10 +68,15 @@ def main():
     import pandas as pd
     from elephantgraph.preprocessing.windowing import create_windows
 
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.dirname(script_dir)
+
     parser = argparse.ArgumentParser(description="Fit and save scalers from training windows")
-    parser.add_argument("--clean-data", type=str, required=True,
+    parser.add_argument("--clean-data", type=str,
+                        default=os.path.join(project_dir, "data", "processed", "clean.csv"),
                         help="Path to cleaned CSV file from elephantgraph.preprocessing.clean")
-    parser.add_argument("--output", type=str, required=True,
+    parser.add_argument("--output", type=str,
+                        default=os.path.join(project_dir, "data", "scalers"),
                         help="Directory to save scaler .pkl files")
     args = parser.parse_args()
 

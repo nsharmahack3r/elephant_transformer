@@ -18,8 +18,8 @@ def train_fine_model(model, diffusion, train_dataset,
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        num_workers=4,
-        pin_memory=True
+        num_workers=0,
+        pin_memory=False
     )
     val_loader = DataLoader(
         val_dataset,

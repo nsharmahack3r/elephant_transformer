@@ -132,10 +132,15 @@ def main():
     import pickle
     import pandas as pd
 
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.dirname(script_dir)
+
     parser = argparse.ArgumentParser(description="Build H3 graph from hourly resampled data")
-    parser.add_argument("--input", type=str, required=True,
+    parser.add_argument("--input", type=str,
+                        default=os.path.join(project_dir, "data", "processed", "hourly"),
                         help="Directory containing hourly CSV files")
-    parser.add_argument("--output", type=str, required=True,
+    parser.add_argument("--output", type=str,
+                        default=os.path.join(project_dir, "data", "processed", "h3_graph"),
                         help="Directory to write H3 graph artifacts")
     parser.add_argument("--split-threshold", type=float, default=SPLIT_THRESHOLD,
                         help=f"Diameter threshold for H3 region splitting (default: {SPLIT_THRESHOLD})")
@@ -189,5 +194,4 @@ def main():
 
 
 if __name__ == "__main__":
-    import numpy as np
     main()

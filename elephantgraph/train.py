@@ -11,23 +11,30 @@ from elephantgraph.training.dataset import ElephantWindowDataset
 from elephantgraph.training.trainer_fine import train_fine_model
 from elephantgraph.preprocessing.scalers import load_scalers
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 def main():
     parser = argparse.ArgumentParser(description="Train ElephantGraph")
-    parser.add_argument("--config", type=str, required=True,
+    parser.add_argument("--config", type=str,
+                        default=os.path.join(script_dir, "configs", "fine_config.yaml"),
                         help="Path to config YAML file")
     parser.add_argument("--level", type=str, default="fine",
                         choices=["fine", "coarse"],
                         help="Training level")
     parser.add_argument("--train-data", type=str,
-                        default="data/processed/windows/train_windows.npy")
+                        default=os.path.join(script_dir, "data", "processed", "windows", "train_windows.npy"))
     parser.add_argument("--val-data", type=str,
-                        default="data/processed/windows/val_windows.npy")
+                        default=os.path.join(script_dir, "data", "processed", "windows", "val_windows.npy"))
     parser.add_argument("--scaler-dir", type=str,
-                        default="data/scalers/")
+                        default=os.path.join(script_dir, "data", "scalers"))
     args = parser.parse_args()
 
-    with open(args.config, 'r') as f:
+    config_path = args.config
+    if args.level == "coarse" and config_path == os.path.join(script_dir, "configs", "fine_config.yaml"):
+        config_path = os.path.join(script_dir, "configs", "coarse_config.yaml")
+
+    with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
 
     if args.level == "fine":

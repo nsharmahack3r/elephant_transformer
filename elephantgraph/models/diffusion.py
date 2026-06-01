@@ -14,7 +14,7 @@ class DDIMDiffusion:
         self.sample_steps = list(range(0, T, T // S))[::-1]
 
     def q_sample(self, x0, t):
-        alpha_bar_t = self.alpha_bar[t].view(-1, 1, 1).to(x0.device)
+        alpha_bar_t = self.alpha_bar.to(t.device)[t].view(-1, 1, 1).to(x0.device)
         noise = torch.randn_like(x0)
         x_t = (alpha_bar_t ** 0.5) * x0 + ((1 - alpha_bar_t) ** 0.5) * noise
         return x_t, noise

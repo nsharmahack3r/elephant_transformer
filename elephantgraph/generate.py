@@ -5,10 +5,13 @@ import pickle
 
 from elephantgraph.inference.generator import ElephantTrajectoryGenerator
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 def main():
     parser = argparse.ArgumentParser(description="Generate trajectories with ElephantGraph")
-    parser.add_argument("--checkpoint", type=str, required=True,
+    parser.add_argument("--checkpoint", type=str,
+                        default=os.path.join(script_dir, "checkpoints", "fine", "best_model.pt"),
                         help="Path to model checkpoint")
     parser.add_argument("--n", type=int, default=1000,
                         help="Number of trajectories to generate")
@@ -22,8 +25,9 @@ def main():
     parser.add_argument("--human-settle", action="store_true")
     parser.add_argument("--seq-len", type=int, default=200)
     parser.add_argument("--scaler-dir", type=str,
-                        default="data/scalers/")
-    parser.add_argument("--output", type=str, required=True,
+                        default=os.path.join(script_dir, "data", "scalers"))
+    parser.add_argument("--output", type=str,
+                        default=os.path.join(script_dir, "data", "processed", "generated_trajectories.npy"),
                         help="Output file path for generated trajectories")
     parser.add_argument("--device", type=str, default="cuda")
     args = parser.parse_args()

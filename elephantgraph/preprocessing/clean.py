@@ -65,10 +65,16 @@ def run_cleaning_pipeline(input_path, output_path):
 
 def main():
     import argparse
+    import os
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_dir = os.path.dirname(script_dir)
+
     parser = argparse.ArgumentParser(description="Clean raw elephant GPS data")
-    parser.add_argument("--input", type=str, required=True,
+    parser.add_argument("--input", type=str,
+                        default=os.path.join(project_dir, "data", "raw", "complete_data.csv"),
                         help="Path to raw CSV file")
-    parser.add_argument("--output", type=str, required=True,
+    parser.add_argument("--output", type=str,
+                        default=os.path.join(project_dir, "data", "processed", "clean.csv"),
                         help="Path to write cleaned CSV")
     args = parser.parse_args()
     run_cleaning_pipeline(args.input, args.output)

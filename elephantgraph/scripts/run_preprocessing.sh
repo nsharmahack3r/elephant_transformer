@@ -1,36 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
-
 echo "=== ElephantGraph Preprocessing Pipeline ==="
-echo "Input: ${PROJECT_DIR}/data/raw/elephant_gps.csv"
 
 # 1. Clean
-python -m elephantgraph.preprocessing.clean \
-    --input "${PROJECT_DIR}/data/raw/elephant_gps.csv" \
-    --output "${PROJECT_DIR}/data/processed/clean.csv"
+echo "Step 1/5: Cleaning data..."
+python -m elephantgraph.preprocessing.clean
 
 # 2. Hourly resample (for H3 graph)
-python -m elephantgraph.preprocessing.resample \
-    --input "${PROJECT_DIR}/data/processed/clean.csv" \
-    --output "${PROJECT_DIR}/data/processed/hourly/hourly.csv"
+echo "Step 2/5: Hourly resampling..."
+python -m elephantgraph.preprocessing.resample
 
 # 3. Sliding windows + train/val/test split
-python -m elephantgraph.preprocessing.windowing \
-    --input "${PROJECT_DIR}/data/processed/clean.csv" \
-    --output "${PROJECT_DIR}/data/processed/windows/" \
-    --val-elephant AG005
+echo "Step 3/5: Creating windows..."
+python -m elephantgraph.preprocessing.windowing
 
 # 4. H3 graph + node2vec embeddings
-python -m elephantgraph.preprocessing.h3_builder \
-    --input "${PROJECT_DIR}/data/processed/hourly/" \
-    --output "${PROJECT_DIR}/data/processed/h3_graph/"
+echo "Step 4/5: Building H3 graph..."
+python -m elephantgraph.preprocessing.h3_builder
 
 # 5. Fit and save scalers
-python -m elephantgraph.preprocessing.scalers \
-    --clean-data "${PROJECT_DIR}/data/processed/clean.csv" \
-    --output "${PROJECT_DIR}/data/scalers/"
+echo "Step 5/5: Fitting scalers..."
+python -m elephantgraph.preprocessing.scalers
 
 echo "=== Preprocessing Complete ==="

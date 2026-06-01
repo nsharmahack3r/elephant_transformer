@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import numpy as np
 
 from elephantgraph.evaluation.spatial_metrics import (
@@ -20,14 +21,19 @@ from elephantgraph.evaluation.kinematic_metrics import (
     movement_consistency_score,
 )
 
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
 
 def main():
     parser = argparse.ArgumentParser(description="Evaluate generated trajectories")
-    parser.add_argument("--generated", type=str, required=True,
+    parser.add_argument("--generated", type=str,
+                        default=os.path.join(script_dir, "data", "processed", "generated_trajectories.npy"),
                         help="Path to generated trajectories .npy")
-    parser.add_argument("--real", type=str, required=True,
+    parser.add_argument("--real", type=str,
+                        default=os.path.join(script_dir, "data", "processed", "windows", "test_windows.npy"),
                         help="Path to real test windows .npy")
-    parser.add_argument("--output", type=str, required=True,
+    parser.add_argument("--output", type=str,
+                        default=os.path.join(script_dir, "data", "processed", "evaluation_report.json"),
                         help="Output JSON report path")
     args = parser.parse_args()
 
