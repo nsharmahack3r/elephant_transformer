@@ -25,7 +25,7 @@ def train_fine_model(model, diffusion, train_dataset,
         val_dataset,
         batch_size=batch_size,
         shuffle=False,
-        num_workers=4
+        num_workers=0
     )
 
     optimizer = AdamW(
