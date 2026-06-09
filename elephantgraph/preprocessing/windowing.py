@@ -63,10 +63,32 @@ def create_windows(df, window_size=WINDOW_SIZE, stride=STRIDE):
     return all_windows
 
 
-def split_by_elephant(windows, val_elephant='AG005', test_elephant=None):
-    train = [w for w in windows if w['elephant_id'] not in [val_elephant, test_elephant]]
-    val = [w for w in windows if w['elephant_id'] == val_elephant]
-    test = [w for w in windows if w['elephant_id'] == test_elephant]
+def split_temporal(windows, train_frac=0.8, val_frac=0.1):
+    """
+    80/10/10 temporal split within each elephant.
+
+    Windows are already ordered by start_time within each elephant
+    (create_windows iterates in sorted order). We split the *window list*
+    per elephant at the 80% and 90% marks so no window ever crosses a
+    boundary — the positional split is a clean approximation of a time
+    boundary without re-parsing timestamps.
+    """
+    from collections import defaultdict
+    by_elephant = defaultdict(list)
+    for w in windows:
+        by_elephant[w['elephant_id']].append(w)
+
+    train, val, test = [], [], []
+    for eid, ws in by_elephant.items():
+        n = len(ws)
+        i_val  = int(n * train_frac)
+        i_test = int(n * (train_frac + val_frac))
+        train.extend(ws[:i_val])
+        val.extend(ws[i_val:i_test])
+        test.extend(ws[i_test:])
+        print(f"  {eid}: {n} windows -> "
+              f"train={i_val}  val={i_test-i_val}  test={n-i_test}")
+
     return train, val, test
 
 
@@ -91,20 +113,21 @@ def main():
                         help=f"Window size in timesteps (default: {WINDOW_SIZE})")
     parser.add_argument("--stride", type=int, default=STRIDE,
                         help=f"Stride between windows (default: {STRIDE})")
-    parser.add_argument("--val-elephant", type=str, default="AG005",
-                        help="Elephant ID held out for validation (default: AG005)")
-    parser.add_argument("--test-elephant", type=str, default=None,
-                        help="Elephant ID held out for test (optional)")
+    parser.add_argument("--train-frac", type=float, default=0.8,
+                        help="Fraction of each elephant's windows used for training (default: 0.8)")
+    parser.add_argument("--val-frac", type=float, default=0.1,
+                        help="Fraction used for validation (default: 0.1); remainder = test")
     args = parser.parse_args()
 
     df = pd.read_csv(args.input, parse_dates=['timestamp'])
     windows = create_windows(df, window_size=args.window_size, stride=args.stride)
     print(f"Created {len(windows)} total windows")
 
-    train, val, test = split_by_elephant(windows,
-                                         val_elephant=args.val_elephant,
-                                         test_elephant=args.test_elephant)
-    print(f"Split: {len(train)} train, {len(val)} val, {len(test)} test windows")
+    print("Temporal 80/10/10 split per elephant:")
+    train, val, test = split_temporal(windows,
+                                      train_frac=args.train_frac,
+                                      val_frac=args.val_frac)
+    print(f"Total: {len(train)} train  {len(val)} val  {len(test)} test")
 
     os.makedirs(args.output, exist_ok=True)
     save_windows(train, os.path.join(args.output, "train_windows.npy"))

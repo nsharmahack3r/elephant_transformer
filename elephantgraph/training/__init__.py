@@ -1,4 +1,5 @@
 from elephantgraph.training.dataset import ElephantWindowDataset
+from elephantgraph.training.dataset_coarse import CoarseWindowDataset
 from elephantgraph.training.losses import (
     haversine_loss,
     kinematic_consistency_loss,
@@ -16,6 +17,7 @@ from elephantgraph.training.callbacks import (
 
 __all__ = [
     "ElephantWindowDataset",
+    "CoarseWindowDataset",
     "haversine_loss",
     "kinematic_consistency_loss",
     "ecological_validity_loss",

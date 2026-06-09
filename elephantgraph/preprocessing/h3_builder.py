@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from itertools import combinations
 
-INITIAL_ZOOM = 4
+INITIAL_ZOOM = 6
 SPLIT_THRESHOLD = 1.0
 NODE2VEC_DIM = 64
 ECO_DIM = 16
@@ -189,6 +189,10 @@ def main():
         }
     with open(os.path.join(args.output, 'latent_dict.pkl'), 'wb') as f:
         pickle.dump(latent_dict, f)
+
+    # Save zoom metadata so downstream scripts don't need to hardcode it
+    with open(os.path.join(args.output, 'h3_meta.json'), 'w') as f:
+        json.dump({'zoom': INITIAL_ZOOM, 'split_threshold': args.split_threshold}, f)
 
     print(f"H3 graph artifacts saved to {args.output}/")
 

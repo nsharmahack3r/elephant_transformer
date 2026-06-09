@@ -7,7 +7,7 @@ import os
 
 
 def train_fine_model(model, diffusion, train_dataset,
-                     val_dataset, config):
+                     val_dataset, config, resume_from=None):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
@@ -33,11 +33,26 @@ def train_fine_model(model, diffusion, train_dataset,
         lr=config.get('lr', 1e-4),
         weight_decay=config.get('wd', 1e-4)
     )
-    scheduler = CosineAnnealingLR(optimizer, T_max=epochs, eta_min=1e-6)
 
+    start_epoch = 0
     best_val_loss = float('inf')
 
-    for epoch in range(epochs):
+    if resume_from and os.path.exists(resume_from):
+        ckpt = torch.load(resume_from, map_location=device, weights_only=False)
+        model.load_state_dict(ckpt['model_state'])
+        optimizer.load_state_dict(ckpt['optim_state'])
+        start_epoch = ckpt['epoch'] + 1
+        best_val_loss = ckpt['val_loss']
+        print(f"Resumed from {resume_from} (epoch {start_epoch + 1}/{epochs}, "
+              f"best_val_loss={best_val_loss:.5f})", flush=True)
+
+        if start_epoch >= epochs:
+            print(f"Training already completed ({start_epoch}/{epochs} epochs). Exiting.", flush=True)
+            return
+
+    scheduler = CosineAnnealingLR(optimizer, T_max=epochs - start_epoch, eta_min=1e-6)
+
+    for epoch in range(start_epoch, epochs):
         model.train()
         train_loss = 0.0
 
@@ -100,7 +115,7 @@ def train_fine_model(model, diffusion, train_dataset,
         scheduler.step()
 
         print(f"Epoch {epoch + 1:03d} | "
-              f"Train: {train_loss:.5f} | Val: {val_loss:.5f}")
+              f"Train: {train_loss:.5f} | Val: {val_loss:.5f}", flush=True)
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
@@ -112,5 +127,8 @@ def train_fine_model(model, diffusion, train_dataset,
                 'optim_state': optimizer.state_dict(),
                 'val_loss': val_loss,
                 'config': config,
+                'd_model': model.d_model,
+                'nhead': 8,
+                'num_layers': len(model.transformer_blocks),
             }, os.path.join(checkpoint_dir, 'best_model.pt'))
-            print(f"  Saved best model (val_loss={val_loss:.5f})")
+            print(f"  Saved best model (val_loss={val_loss:.5f})", flush=True)

@@ -29,6 +29,11 @@ def main():
     parser.add_argument("--output", type=str,
                         default=os.path.join(script_dir, "data", "processed", "generated_trajectories.npy"),
                         help="Output file path for generated trajectories")
+    parser.add_argument("--config", type=str,
+                        default=os.path.join(script_dir, "configs", "fine_config.yaml"),
+                        help="Path to config YAML (for model architecture)")
+    parser.add_argument("--micro-batch", type=int, default=8,
+                        help="Batch size for generation (reduce if OOM)")
     parser.add_argument("--device", type=str, default="cuda")
     args = parser.parse_args()
 
@@ -41,6 +46,7 @@ def main():
     generator = ElephantTrajectoryGenerator(
         checkpoint_path=args.checkpoint,
         scaler_gps=gps_scaler,
+        config_path=args.config,
         device=args.device
     )
 
@@ -52,6 +58,7 @@ def main():
         lulc=args.lulc,
         human_settle=args.human_settle,
         seq_len=args.seq_len,
+        micro_batch=args.micro_batch,
     )
 
     os.makedirs(os.path.dirname(args.output) or ".", exist_ok=True)

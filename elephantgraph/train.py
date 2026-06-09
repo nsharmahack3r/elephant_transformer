@@ -7,8 +7,11 @@ import yaml
 
 from elephantgraph.models.fine_generator import ElephantFineDiffusionTransformer
 from elephantgraph.models.diffusion import DDIMDiffusion
+from elephantgraph.models.coarse_generator import CoarseGenerator
 from elephantgraph.training.dataset import ElephantWindowDataset
+from elephantgraph.training.dataset_coarse import CoarseWindowDataset
 from elephantgraph.training.trainer_fine import train_fine_model
+from elephantgraph.training.trainer_coarse import train_coarse_model
 from elephantgraph.preprocessing.scalers import load_scalers
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -28,6 +31,12 @@ def main():
                         default=os.path.join(script_dir, "data", "processed", "windows", "val_windows.npy"))
     parser.add_argument("--scaler-dir", type=str,
                         default=os.path.join(script_dir, "data", "scalers"))
+    parser.add_argument("--hourly-csv", type=str,
+                        default=os.path.join(script_dir, "data", "processed", "hourly", "hourly.csv"))
+    parser.add_argument("--h3-graph-dir", type=str,
+                        default=os.path.join(script_dir, "data", "processed", "h3_graph"))
+    parser.add_argument("--resume", type=str, default=None,
+                        help="Path to checkpoint to resume from (e.g. checkpoints/fine/best_model.pt)")
     args = parser.parse_args()
 
     config_path = args.config
@@ -68,7 +77,40 @@ def main():
 
         train_fine_model(
             model, diffusion, train_dataset, val_dataset,
-            config['training']
+            config['training'],
+            resume_from=args.resume,
+        )
+
+    elif args.level == "coarse":
+        train_dataset = CoarseWindowDataset(
+            args.hourly_csv, args.h3_graph_dir,
+            window_size=config['data'].get('window_size', 24),
+            stride=config['data'].get('stride', 12),
+            split="train",
+            train_frac=config['data'].get('train_frac', 0.8),
+            val_frac=config['data'].get('val_frac', 0.1),
+        )
+        val_dataset = CoarseWindowDataset(
+            args.hourly_csv, args.h3_graph_dir,
+            window_size=config['data'].get('window_size', 24),
+            stride=config['data'].get('stride', 12),
+            split="val",
+            train_frac=config['data'].get('train_frac', 0.8),
+            val_frac=config['data'].get('val_frac', 0.1),
+        )
+
+        model = CoarseGenerator(
+            d_model=config['model']['d_model'],
+            nhead=config['model']['nhead'],
+            num_layers=config['model']['num_layers_coarse'],
+            dropout=config['model'].get('dropout', 0.1),
+            num_h3_nodes=train_dataset.num_h3_nodes,
+            num_latent_entries=config['model'].get('num_latent_entries', 16),
+            num_seasons=config['model'].get('num_seasons', 2),
+        )
+
+        train_coarse_model(
+            model, train_dataset, val_dataset, config['training']
         )
 
 

@@ -41,3 +41,5 @@ notebooks/.ipynb_checkpoints/
 .commandcode
 
 data/
+
+results/
